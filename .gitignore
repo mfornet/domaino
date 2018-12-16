@@ -1,0 +1,9 @@
+# Python files
+__pycache__/
+*.pyc
+
+# Logs
+*.json
+
+# IDE
+.vscode/
