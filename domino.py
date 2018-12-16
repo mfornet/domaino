@@ -1,11 +1,5 @@
 import random
-import json
-import numpy as np
 
-from jugador import BotaGorda, Aleatorio, Cantidad
-from jugador_inteligente import Inteligente
-
-from functools import partial
 from pprint import pprint
 
 # TODO: Pasar información del juego a todos los jugadores
@@ -142,33 +136,30 @@ class JuegoSimple:
         return False
 
 if __name__ == '__main__':
+    from jugador import BotaGorda, Aleatorio, Cantidad
+    from jugador_inteligente import Inteligente
+
+    from functools import partial
+
+    # Ejecuta un torneo todo contra todos entre varios jugadores
+    # Para determinar la calidad de cada jugador.
+    jugadores = [
+        partial(BotaGorda, "1"),
+        partial(Aleatorio, "2"),
+        # partial(Cantidad, "3"),
+        # partial(Inteligente, "4.1", [0.36761, 0.07985, 0.06829, 0.61909, 0.15015, 0.94147]),
+        # partial(Inteligente, "4.2", [0.50319, 0.89254, 0.05187, 0.42541, 0.19633, 0.92883]),
+        # partial(Inteligente, "4.3", [0.50329, 0.89258, 0.05183, 0.42549, 0.19591, 0.92901]),
+    ]
+
     juego = JuegoSimple()
-    juego.start(partial(BotaGorda, "1"), partial(Aleatorio, "2"))
 
-    # juegos = []
-    # uno = Inteligente('3', [0.36760645349812066, 0.079849156030557131, 0.068292140445869134, 0.61909221402983905, 0.15014843724360663, 0.94146798512271024])
-    # dos = Inteligente('3', [0.50319271, 0.89254, 0.05187015, 0.42540609, 0.19632677, 0.92883179])
-    # tres = Inteligente('3', [0.50328748, 0.89258251, 0.05182548, 0.42549345, 0.19590833, 0.92901494])
-    # jugadores = [BotaGorda('1'), Aleatorio('2'), tres, Cantidad('4')]
+    total = 10000
 
-    # ganadores = [[jugadores[0].nombre, 0], [jugadores[1].nombre, 0], [jugadores[2].nombre, 0], [jugadores[3].nombre, 0]]
+    for ix, jugador0 in enumerate(jugadores):
+        for iy, jugador1 in enumerate(jugadores):
+            win = 0
+            for _ in range(total):
+                win += int(juego.start(jugador0, jugador1))
 
-    # for i in range(500):
-    #     juego = Domino(jugadores)
-    #     ganador = juego.start()
-
-    #     # indx = jugadores.index(ganador)
-    #     # ganadores[indx] += 1
-
-    #     for j in ganadores:
-    #         if j[0] == ganador.nombre:
-    #             j[1] += 1
-    #             break
-
-    #     juegos.append(juego.log)
-
-    # info = json.dumps(juegos)
-    # archivo = open('info.json', 'a+')
-    # archivo.write(info)
-    # archivo.close()
-    # print(ganadores)
+            print(f"{jugador0().nombre} {win} - {total - win} {jugador1().nombre}")

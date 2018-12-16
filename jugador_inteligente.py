@@ -79,14 +79,14 @@ class Inteligente(Jugador):
         else:
             return 0
 
-    def escoger_ficha(self, extremo1, extremo2):
+    def escoger_ficha(self, cabezas):
         mayor = 0
-        _ficha = 0
+        ficha_final = 0
 
         for ficha in self.fichas:
-            if ficha[0] == extremo1 or ficha[0] == extremo2 or \
-              ficha[1] == extremo1 or ficha[1] == extremo2 or \
-              (extremo1 == -1 and extremo2 == -1):
+            if -1 in cabezas or \
+                ficha[0] in cabezas or \
+                ficha[1] in cabezas:
 
                 valores = []
 
@@ -102,6 +102,9 @@ class Inteligente(Jugador):
 
                 if val > mayor:
                     mayor = val
-                    _ficha = ficha
+                    ficha_final = ficha
 
-        return _ficha
+        # Porque cabeza?
+        cabeza = 0 if cabezas[0] in ficha_final else 1
+
+        return ficha_final, cabeza
