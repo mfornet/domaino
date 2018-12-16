@@ -4,33 +4,46 @@ import random
 class Jugador:
     def __init__(self, nombre):
         self.nombre = nombre
+        self.puesto = None
         self.fichas = []
         self.historia = []
 
-    def jugar(self, extremo1, extremo2):
-        # print('Jugando %s extremo1=%s extremo2=%s' %(self.nombre, extremo1, extremo2))
+    def jugar(self, cabezas):
         no_llevo = True
 
-        if extremo1 == -1 and extremo2 == -1:
+        if -1 in cabezas:
+            # Principio del juego
             no_llevo = False
         else:
             for ficha in self.fichas:
-                if ficha[0] == extremo1 or ficha[0] == extremo2 or \
-                    ficha[1] == extremo1 or ficha[1] == extremo2:
+                if ficha[0] in cabezas or ficha[1] in cabezas:
                     no_llevo = False
+                    break
 
         if no_llevo:
-            # print('no llevo')
             return False
 
-        ficha = self.escoger_ficha(extremo1, extremo2)
+        ficha, cabeza = self.escoger_ficha(cabezas)
 
+        assert ficha in self.fichas
         self.fichas.remove(ficha)
-        return ficha
 
-    def escoger_ficha(self, extremo1, extremo2):
+        return ficha, cabeza
+
+    def empieza_partida(self, puesto):
+        self.puesto = puesto
+        self.historia.clear()
+        self.fichas.clear()
+
+    def escoger_ficha(self, cabezas):
         """
-        Esta función contiene la lógica del jugador
+        Esta función contiene la lógica del jugador para elegir la ficha.
+        Note que esta función solo se va a llamar cuando el jugador posee
+        al menos una ficha para jugar
+
+        Return: (ficha, cabeza)
+            ficha: La ficha que el jugador desea jugar (aún la debe poseer)
+            cabeza: Un entero entre 0 y 1 para elegir porque cabeza desea jugar
         """
         raise NotImplementedError()
 
@@ -50,15 +63,15 @@ class BotaGorda(Jugador):
 
         self.nombre = 'BotaGorda_' + nombre
 
-    def escoger_ficha(self, extremo1, extremo2):
+    def escoger_ficha(self, cabezas):
         mayor_suma = 0
         gordas = []
 
         for ficha in self.fichas:
             # Pregunta si la ficha se puede poner
-            if extremo1 == -1 or \
-                ficha[0] in (extremo1, extremo2) or \
-                ficha[1] in (extremo1, extremo2):
+            if -1 in cabezas or \
+                ficha[0] in cabezas or \
+                ficha[1] in cabezas:
 
                 suma = ficha[0] + ficha[1]
 
@@ -77,7 +90,12 @@ class BotaGorda(Jugador):
         assert len(gordas) > 0
 
         # Escoge una de las fichas gordas de forma aleatoria
-        return random.choice(gordas)
+        ficha = random.choice(gordas)
+
+        # Porque cabeza?
+        cabeza = 0 if cabezas[0] in ficha else 1
+
+        return ficha, cabeza
 
 
 class Aleatorio(Jugador):
@@ -86,14 +104,22 @@ class Aleatorio(Jugador):
 
         self.nombre = 'Aleatorio_' + nombre
 
-    def escoger_ficha(self, extremo1, extremo2):
+    def escoger_ficha(self, cabezas):
+        # Lista de pares (ficha, cabeza) válidos para jugar
         viables = []
 
-        for ficha in self.fichas:
-            if ficha[0] == extremo1 or ficha[0] == extremo2 or \
-              ficha[1] == extremo1 or ficha[1] == extremo2 or \
-              (extremo1 == -1 and extremo2 == -1):
-                viables.append(ficha)
+        if -1 in cabezas:
+            # Principio del juego. Solo se añaden las fichas por
+            # la cabeza 0 pues por la cabeza 1 es equivalente
+            viables = [(ficha, 0) for ficha in self.fichas]
+
+        else:
+            for ficha in self.fichas:
+                if cabezas[0] in ficha:
+                    viables.append((ficha, 0))
+
+                if cabezas[1] in ficha:
+                    viables.append((ficha, 1))
 
         return random.choice(viables)
 
@@ -109,27 +135,38 @@ class Cantidad(Jugador):
 
         self.nombre = 'Cantidad_' + nombre
 
-    def escoger_ficha(self, extremo1, extremo2):
+    def escoger_ficha(self, cabezas):
+        # Lista de pares (ficha, cabeza) válidos para jugar
         viables = []
 
-        for ficha in self.fichas:
-            if ficha[0] == extremo1 or ficha[0] == extremo2 or \
-              ficha[1] == extremo1 or ficha[1] == extremo2 or \
-              (extremo1 == -1 and extremo2 == -1):
-                viables.append(ficha)
+        if -1 in cabezas:
+            # Principio del juego. Solo se añaden las fichas por
+            # la cabeza 0 pues por la cabeza 1 es equivalente
+            viables = [(ficha, 0) for ficha in self.fichas]
 
-        _ficha = 0
-        _sum = 0
-
-        for candidata in viables:
-            temp_sum = 0
+        else:
             for ficha in self.fichas:
-                if candidata[0] == ficha[0] or candidata[0] == ficha[1] or \
-                  candidata[1] == ficha[0] or candidata[1] == ficha[1]:
-                    temp_sum += 1
+                if cabezas[0] in ficha:
+                    viables.append((ficha, 0))
 
-            if temp_sum > _sum:
-                _ficha = candidata
-                _sum = temp_sum
+                if cabezas[1] in ficha:
+                    viables.append((ficha, 1))
 
-        return _ficha
+        fichas = []
+        mejor_frecuencia = -1
+
+        for (candidata, cabeza) in viables:
+            frecuencia = 0
+
+            for ficha in self.fichas:
+                if ficha[0] in candidata or ficha[1] in candidata:
+                    frecuencia += 1
+
+            if frecuencia > mejor_frecuencia:
+                mejor_frecuencia = frecuencia
+                fichas = []
+
+            if frecuencia == mejor_frecuencia:
+                fichas.append((candidata, cabeza))
+
+        return random.choice(fichas)
