@@ -5,6 +5,7 @@ class Jugador:
     def __init__(self, nombre):
         self.nombre = nombre
         self.fichas = []
+        self.historia = []
 
     def jugar(self, extremo1, extremo2):
         # print('Jugando %s extremo1=%s extremo2=%s' %(self.nombre, extremo1, extremo2))
@@ -28,7 +29,10 @@ class Jugador:
         return ficha
 
     def escoger_ficha(self, extremo1, extremo2):
-        pass
+        """
+        Esta función contiene la lógica del jugador
+        """
+        raise NotImplementedError()
 
     def repartiendo(self, ficha):
         self.fichas.append(ficha)
@@ -47,25 +51,39 @@ class BotaGorda(Jugador):
         self.nombre = 'BotaGorda_' + nombre
 
     def escoger_ficha(self, extremo1, extremo2):
-        _sum = 0
-        _ficha = 0
+        mayor_suma = 0
+        gordas = []
 
         for ficha in self.fichas:
-            if ficha[0] == extremo1 or ficha[0] == extremo2 or \
-              ficha[1] == extremo1 or ficha[1] == extremo2 and \
-              ficha[0] + ficha[1] > _sum:
-                _ficha = ficha
-                _sum = ficha[0] + ficha[1]
-            elif extremo1 == -1 and extremo2 == -1 and ficha[0] + ficha[1] > _sum:
-                _ficha = ficha
-                _sum = ficha[0] + ficha[1]
+            # Pregunta si la ficha se puede poner
+            if extremo1 == -1 or \
+                ficha[0] in (extremo1, extremo2) or \
+                ficha[1] in (extremo1, extremo2):
 
-        return _ficha
+                suma = ficha[0] + ficha[1]
+
+                # Si la ficha es la de mayor valor hasta ahora
+                # reinicia el conjunto de fichas gordas y actualiza
+                # la mayor suma.
+                if suma > mayor_suma:
+                    gordas = []
+                    mayor_suma = suma
+
+                # Si la ficha tiene el mismo valor que la mayor vista
+                # añadela al conjunto de fichas gordas
+                if suma == mayor_suma:
+                    gordas.append(ficha)
+
+        assert len(gordas) > 0
+
+        # Escoge una de las fichas gordas de forma aleatoria
+        return random.choice(gordas)
+
 
 class Aleatorio(Jugador):
     def __init__(self, nombre):
         Jugador.__init__(self, nombre)
-        
+
         self.nombre = 'Aleatorio_' + nombre
 
     def escoger_ficha(self, extremo1, extremo2):
@@ -77,17 +95,15 @@ class Aleatorio(Jugador):
               (extremo1 == -1 and extremo2 == -1):
                 viables.append(ficha)
 
-        for i in range(5):
-            random.shuffle(viables)
+        return random.choice(viables)
 
-        return viables.pop(0)
 
-'''
-Este jugador escoge de entre las posibles jugadas,
-la ficha que, entre las dos partes de ella, tenga
-mayor cantidad de fichas iguales en la mano
-'''
 class Cantidad(Jugador):
+    """
+    Este jugador escoge de entre las posibles jugadas,
+    la ficha que, entre las dos partes de ella, tenga
+    mayor cantidad de fichas iguales en la mano
+    """
     def __init__(self, nombre):
         Jugador.__init__(self, nombre)
 
