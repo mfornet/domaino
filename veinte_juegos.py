@@ -42,7 +42,7 @@ class tester:
 
                     if(self.juegos_jugados[indx][0] == 20):
                         self.juegos_jugados.remove(self.juegos_jugados[indx])
-                    
+
                 # inicio el juego
                 juego = Domino([lista[0][1], lista[1][1], lista[2][1], lista[3][1]])
 
@@ -64,6 +64,10 @@ class tester:
             self.top_ten.sort(key=lambda x: x[0], reverse=True)
 
             mejores = self.top_ten[:10]
+
+            if (torneo + 1) % 5 == 0:
+                print(torneo + 1, np.round(mejores[0][1].coeficientes, 5))
+
             peores = self.top_ten[90:100]
 
             # busco los 10 peores en el array de jugadores y los reemplazo por
@@ -83,12 +87,12 @@ if __name__ == '__main__':
     probando = tester()
     probando.prueba()
 
-    result = sorted(probando.top_ten, key=lambda x: x[0], reverse=True)
-    archivo = open('partidos2.domino', 'a+')
+    # result = sorted(probando.top_ten, key=lambda x: x[0], reverse=True)
+    # archivo = open('partidos2.domino', 'a+')
 
-    archivo.write('\n**********Nuevos jugadores inteligentes**********\n')
+    # archivo.write('\n**********Nuevos jugadores inteligentes**********\n')
 
-    for i in result:
-        archivo.write('gano:%s\ncoeficientes:%s\n' %(i[0], list(i[1].coeficientes)))
+    # for i in result:
+    #     archivo.write('gano:%s\ncoeficientes:%s\n' %(i[0], list(i[1].coeficientes)))
 
-    archivo.close()
+    # archivo.close()

@@ -35,6 +35,9 @@ class Jugador:
         self.historia.clear()
         self.fichas.clear()
 
+    def log(self, data):
+        self.historia.append(data)
+
     def escoger_ficha(self, cabezas):
         """
         Esta función contiene la lógica del jugador para elegir la ficha.

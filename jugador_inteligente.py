@@ -80,8 +80,8 @@ class Inteligente(Jugador):
             return 0
 
     def escoger_ficha(self, cabezas):
-        mayor = 0
-        ficha_final = 0
+        mayor = float('-inf')
+        ficha_final = None
 
         for ficha in self.fichas:
             if -1 in cabezas or \

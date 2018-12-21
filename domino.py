@@ -1,6 +1,7 @@
 import random
 
 from pprint import pprint
+from copy import deepcopy
 
 # TODO: Pasar información del juego a todos los jugadores
 # TODO: Unittest
@@ -24,6 +25,7 @@ class Domino:
 
     def __init__(self):
         self.logs = []
+        self.jugadores = None
 
         # Iniciar las fichas
         self.fichas = []
@@ -35,7 +37,25 @@ class Domino:
         self.puntos_finales = None
 
     def log(self, *data):
+        """
+            ("nuevo juego",)
+            ("no lleva", puesto)
+            ("salida", puesto, jugada, cabeza)
+            ("jugada", puesto, jugada, cabeza)
+            ("se pego", puesto)
+            ("se tranco",)
+            ("gano", equipo)
+
+            puesto: [0, 1, 2, 3]
+            equipo: [0, 1]
+            jugada: (A, B)
+                A: [0 .. FICHA_MAXIMA]
+                B: [0 .. FICHA_MAXIMA]
+            cabeza: [0, 1]
+        """
         self.logs.append(data)
+        for jugador in self.jugadores:
+            jugador.log(deepcopy(data))
 
     def start(self, jugadores):
         self.logs.clear()
@@ -138,23 +158,37 @@ class JuegoSimple:
 if __name__ == '__main__':
     from jugador import BotaGorda, Aleatorio, Cantidad
     from jugador_inteligente import Inteligente
+    from jugador_flat import Flat
+    from jugador_repr import Representative
 
     from functools import partial
+    import json
+    import numpy as np
 
     # Ejecuta un torneo todo contra todos entre varios jugadores
     # Para determinar la calidad de cada jugador.
     jugadores = [
         partial(BotaGorda, "1"),
         partial(Aleatorio, "2"),
-        # partial(Cantidad, "3"),
-        # partial(Inteligente, "4.1", [0.36761, 0.07985, 0.06829, 0.61909, 0.15015, 0.94147]),
-        # partial(Inteligente, "4.2", [0.50319, 0.89254, 0.05187, 0.42541, 0.19633, 0.92883]),
-        # partial(Inteligente, "4.3", [0.50329, 0.89258, 0.05183, 0.42549, 0.19591, 0.92901]),
+        partial(Cantidad, "3"),
+        partial(Inteligente, "4.1", [0.36761, 0.07985, 0.06829, 0.61909, 0.15015, 0.94147]),
+        partial(Inteligente, "4.2", [0.50319, 0.89254, 0.05187, 0.42541, 0.19633, 0.92883]),
+        partial(Inteligente, "4.3", [0.50329, 0.89258, 0.05183, 0.42549, 0.19591, 0.92901]),
+        partial(Inteligente, "4.4", [0.613, 0.075, 0.171, 0.562, 0.007, 2.127]),
     ]
+
+    # # Load Flat player
+    # with open('flat.json') as f:
+    #     data = json.load(f)
+    # jugadores.append(partial(Flat, "5", data[-1][0]))
+
+    # Load Repr player
+    coef = np.random.randn(36)
+    jugadores.append(partial(Representative, "R", coef))
 
     juego = JuegoSimple()
 
-    total = 10000
+    total = 100
 
     for ix, jugador0 in enumerate(jugadores):
         for iy, jugador1 in enumerate(jugadores):
