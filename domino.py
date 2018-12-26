@@ -2,198 +2,186 @@ import random
 
 from pprint import pprint
 from copy import deepcopy
+from enum import Enum
 
-# TODO: Pasar información del juego a todos los jugadores
-# TODO: Unittest
+class Event(Enum):
+    # Report begining
+    # params: ()
+    NEW_GAME = 0
+
+    # Player don't have any valid piece
+    # params: (position)
+    PASS = 1
+
+    # Player makes a move
+    # params: (position, piece, head)
+    MOVE = 2
+
+    # Last piece of a player is put
+    # params: (position)
+    FINAL = 3
+
+    # None player has a valid piece
+    # params: ()
+    OVER = 4
+
+    # Report winner
+    # params: (team) team=0(First team) team=1(Second team) team=-1(Tie)
+    WIN = 5
 
 class Domino:
     """
-    Instancia para jugar una partida de domino en parejas.
-    Usualmente hay dos configuraciones con las que se juega.
+    Instance that contains the logic of a single match.
+    There are usually two main formats as showed below:
 
-    Doble 6:
-        FICHA_MAXIMA = 6
-        FICHAS_POR_JUGADOR = 7
+    Format 1:
+        MAX_NUMBER = 6
+        PIECES_PER_PLAYER = 7
 
-    Doble 9:
-        FICHA_MAXIMA = 9
-        FICHAS_POR_JUGADOR = 10
+    Format 2:
+        MAX_NUMBER = 9
+        PIECES_PER_PLAYER = 10
     """
-
-    FICHA_MAXIMA = 6
-    FICHAS_POR_JUGADOR = 7
+    MAX_NUMBER = 6
+    PIECES_PER_PLAYER = 7
 
     def __init__(self):
         self.logs = []
-        self.jugadores = None
+        self.players = None
 
-        # Iniciar las fichas
-        self.fichas = []
-        for i in range(Domino.FICHA_MAXIMA + 1):
-            for j in range(i + 1):
-                self.fichas.append((i, j))
-
-        self.cabezas = [-1, -1]
-        self.puntos_finales = None
+        self.heads = [-1, -1]
+        self.score = None
 
     def log(self, *data):
-        """
-            ("nuevo juego",)
-            ("no lleva", puesto)
-            ("salida", puesto, jugada, cabeza)
-            ("jugada", puesto, jugada, cabeza)
-            ("se pego", puesto)
-            ("se tranco",)
-            ("gano", equipo)
-
-            puesto: [0, 1, 2, 3]
-            equipo: [0, 1]
-            jugada: (A, B)
-                A: [0 .. FICHA_MAXIMA]
-                B: [0 .. FICHA_MAXIMA]
-            cabeza: [0, 1]
-        """
         self.logs.append(data)
-        for jugador in self.jugadores:
+        for jugador in self.players:
             jugador.log(deepcopy(data))
 
-    def start(self, jugadores):
+    def winner(self):
+        assert self.logs[-1][0] == Event.WIN
+        return self.logs[-1][1]
+
+    def start(self, players):
+        # Intialize match
         self.logs.clear()
 
-        # Inicializar mesa
-        self.jugadores = jugadores
-        for puesto, jugador in enumerate(self.jugadores):
-            jugador.empieza_partida(puesto)
+        pieces = []
+        for i in range(Domino.MAX_NUMBER + 1):
+            for j in range(i + 1):
+                pieces.append((i, j))
 
-        self.cabezas = [-1, -1]
+        self.players = players
+        random.shuffle(pieces)
+
+        for position, player in enumerate(self.players):
+            begin = Domino.PIECES_PER_PLAYER * position
+            end = begin + Domino.PIECES_PER_PLAYER
+            player.start(position, pieces[begin:end])
+
+        self.heads = [-1, -1]
         self.log("nuevo juego")
-
-        # Repartiendo las fichas
-        random.shuffle(self.fichas)
-        for i in range(Domino.FICHAS_POR_JUGADOR):
-            for jugador in self.jugadores:
-                jugador.repartiendo(self.fichas.pop(0))
 
         # Ejectuando el juego
         while True:
-            se_tranco = True
+            is_over = True
 
-            for puesto, jugador in enumerate(self.jugadores):
-                # print(jugador.nombre)
-                accion = jugador.jugar(self.cabezas)
+            for position, jugador in enumerate(self.players):
+                action = jugador.step(self.heads)
 
-                if not accion:
-                    # El jugador no lleva ficha
-                    self.log('no lleva', puesto)
+                if not action:
+                    # Player doesn't have any valid piece
+                    self.log(Event.PASS, position)
                     continue
 
-                se_tranco = False
-                jugada, cabeza = accion
+                is_over = False
+                piece, head = action
 
-                if -1 in self.cabezas:
-                    # Primera jugada de la partida
-                    self.cabezas = list(jugada)
-                    self.log('salida', puesto, jugada, cabeza)
-
+                if -1 in self.heads:
+                    # First piece of the game (Head is ignored)
+                    self.heads = list(piece)
+                    head = 0
+                    self.log(Event.MOVE, position, piece, head)
                 else:
-                    assert self.cabezas[cabeza] in jugada
+                    assert self.heads[head] in piece
 
-                    if jugada[0] == self.cabezas[cabeza]:
-                        self.cabezas[cabeza] = jugada[1]
+                    if piece[0] == self.heads[head]:
+                        self.heads[head] = piece[1]
                     else:
-                        self.cabezas[cabeza] = jugada[0]
+                        self.heads[head] = piece[0]
 
-                    self.log('jugada', puesto, jugada, cabeza)
+                    self.log(Event.MOVE, position, piece, head)
 
-                if len(jugador.fichas) == 0:
-                    self.log('se pego', puesto)
-                    self.log('gano', puesto % 2)
+                if len(jugador.pieces) == 0:
+                    team = position % 2
 
-                    self.puntos_finales = [
-                        jugador.sum() for jugador in self.jugadores
-                    ]
+                    self.log(Event.FINAL, position)
+                    self.log(Event.WIN, team)
+                    self.score = [jugador.sum() for jugador in self.players]
 
                     return
 
-            if se_tranco:
-                self.log('se tranco')
+            if is_over:
+                self.log(Event.OVER)
 
-                self.puntos_finales = [
-                    jugador.sum() for jugador in self.jugadores
-                ]
+                self.score = [jugador.sum() for jugador in self.players]
 
-                equipo0 = min(self.puntos_finales[0], self.puntos_finales[2])
-                equipo1 = min(self.puntos_finales[1], self.puntos_finales[3])
+                equipo0 = min(self.score[0], self.score[2])
+                equipo1 = min(self.score[1], self.score[3])
 
                 if equipo0 < equipo1:
-                    self.log('gano', 0)
+                    self.log(Event.WIN, 0)
                 elif equipo1 < equipo0:
-                    self.log('gano', 1)
+                    self.log(Event.WIN, 1)
                 else:
-                    self.log('empate')
+                    self.log(Event.WIN, -1)
 
                 return
 
-class JuegoSimple:
+## Wrappers for match implementing different domino rules.
+
+class SimpleGame:
+    """ Simplest rules. Only one match is played.
     """
-    Se juega una sola partida. Si hay tablas gana el segundo jugador
+
+    def start(self, player0, player1):
+        """ Return id of winner team (-1 for tie)
+        """
+
+        players = [player0(), player1(), player0(), player1()]
+        env = Domino()
+        env.start(players)
+
+        return env.winner()
+
+class TwoOfThree:
+    """ First to win two games. Last winner start next match
     """
+    def __init__(self, random_start=True):
+        self.random_start = random_start
 
-    def start(self, jugador0, jugador1):
-        """
-            Devuelve True si gano el jugador0 y False en caso contrario.
-            Si la partida queda empate cuenta como victoria para el jugador1
-        """
-        jugadores = [jugador0(), jugador1(), jugador0(), jugador1()]
-        domino = Domino()
-        domino.start(jugadores)
+    def start(self, player0, player1):
+        players = [player0(), player1(), player0(), player1()]
+        env = Domino()
+        cur_start = 0
 
-        resultado = domino.logs[-1]
-        # pprint(domino.logs)
+        if self.random_start:
+            if random.choice([False, True]):
+                cur_start ^= 1
+                players[0], players[1] = players[1], players[0]
+                players[2], players[3] = players[3], players[2]
 
-        if resultado[0] == 'gano':
-            return resultado[1] == 0
-        return False
+        wins = [0, 0]
 
-if __name__ == '__main__':
-    from jugador import BotaGorda, Aleatorio, Cantidad
-    from jugador_inteligente import Inteligente
-    from jugador_flat import Flat
-    from jugador_repr import Representative
+        while max(wins) < 2:
+            env.start(players)
+            result = env.winner()
 
-    from functools import partial
-    import json
-    import numpy as np
+            wins[result ^ cur_start] += 1
 
-    # Ejecuta un torneo todo contra todos entre varios jugadores
-    # Para determinar la calidad de cada jugador.
-    jugadores = [
-        partial(BotaGorda, "1"),
-        partial(Aleatorio, "2"),
-        partial(Cantidad, "3"),
-        partial(Inteligente, "4.1", [0.36761, 0.07985, 0.06829, 0.61909, 0.15015, 0.94147]),
-        partial(Inteligente, "4.2", [0.50319, 0.89254, 0.05187, 0.42541, 0.19633, 0.92883]),
-        partial(Inteligente, "4.3", [0.50329, 0.89258, 0.05183, 0.42549, 0.19591, 0.92901]),
-        partial(Inteligente, "4.4", [0.613, 0.075, 0.171, 0.562, 0.007, 2.127]),
-    ]
+            if result == -1 or result != cur_start:
+                # Swap players
+                cur_start ^= 1
+                players[0], players[1] = players[1], players[0]
+                players[2], players[3] = players[3], players[2]
 
-    # # Load Flat player
-    # with open('flat.json') as f:
-    #     data = json.load(f)
-    # jugadores.append(partial(Flat, "5", data[-1][0]))
-
-    # Load Repr player
-    coef = np.random.randn(36)
-    jugadores.append(partial(Representative, "R", coef))
-
-    juego = JuegoSimple()
-
-    total = 100
-
-    for ix, jugador0 in enumerate(jugadores):
-        for iy, jugador1 in enumerate(jugadores):
-            win = 0
-            for _ in range(total):
-                win += int(juego.start(jugador0, jugador1))
-
-            print(f"{jugador0().nombre} {win} - {total - win} {jugador1().nombre}")
+        return 0 if wins[0] > wins[1] else 1

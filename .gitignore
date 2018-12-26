@@ -4,6 +4,7 @@ __pycache__/
 
 # Logs
 *.json
+logs/
 
 # IDE
 .vscode/

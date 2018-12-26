@@ -1,3 +1,6 @@
+""" [WIP] This don't work with the new format
+"""
+
 from jugador import Jugador
 from collections import OrderedDict
 from copy import deepcopy
@@ -137,11 +140,6 @@ class Representative(Jugador):
             if A != B:
                 num[B][10] += 1
 
-        # from pprint import pprint
-        # pprint(self.feat)
-        # print(num)
-        # print("****")
-
         if -1 in cabezas:
             # This is first move
             final = None
@@ -173,8 +171,6 @@ class Representative(Jugador):
 
             coef = np.array(self.coeficientes)
             mas_gorda_valor = sum(max(self.fichas, key=lambda f : sum(f)))
-
-
 
             for ficha in self.fichas:
                 # Compute piece value

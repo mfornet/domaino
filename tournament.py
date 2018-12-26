@@ -1,9 +1,14 @@
 """
-    Script para calcular el ELO de varios jugadores en un torneo.
+    Script para calcular el ELO de varios players en un torneo.
 """
 
 import random
 import numpy as np
+
+from players import BigDrop, Frequent, Random, SimpleHybrid
+from domino import SimpleGame
+from functools import partial
+
 
 def select_pair(n):
     while True:
@@ -12,7 +17,10 @@ def select_pair(n):
         if a != b:
             return a, b
 
+
 def tournament(players, engine):
+    """ Compute ELO
+    """
     tot = len(players)
     rounds = 160 * tot
 
@@ -26,12 +34,15 @@ def tournament(players, engine):
 
         w = engine.start(p0, p1)
 
-        matches[a, b] += 1
-        matches[b, a] += 1
+        matches[a, b] += 2
+        matches[b, a] += 2
 
-        if w:
-            wins[a] += 1.
+        if w == 0:
+            wins[a] += 2.
+        elif w == 1:
+            wins[b] += 2.
         else:
+            wins[a] += 1.
             wins[b] += 1.
 
     MEAN = 2300
@@ -74,36 +85,18 @@ def tournament(players, engine):
 
 
 if __name__ == '__main__':
-    from jugador import BotaGorda, Aleatorio, Cantidad
-    from jugador_inteligente import Inteligente
-    from jugador_flat import Flat
-    from domino import JuegoSimple
-
-    from functools import partial
-
-    import json
-
-    # Calcula el elo de los siguientes jugadores haciendo un torneo cerrado entre ellos
-    jugadores = [
-        partial(BotaGorda, "1"),
-        partial(Aleatorio, "2"),
-        partial(Cantidad, "3"),
-        partial(Inteligente, "4.1", [0.36761, 0.07985, 0.06829, 0.61909, 0.15015, 0.94147]),
-        partial(Inteligente, "4.2", [0.50319, 0.89254, 0.05187, 0.42541, 0.19633, 0.92883]),
-        partial(Inteligente, "4.3", [0.50329, 0.89258, 0.05183, 0.42549, 0.19591, 0.92901]),
-        partial(Inteligente, "4.4", [0.613, 0.075, 0.171, 0.562, 0.007, 2.127]),
+    players = [
+        partial(BigDrop, "1"),
+        partial(Random, "2"),
+        partial(Frequent, "3"),
+        partial(SimpleHybrid, "4", SimpleHybrid.PARAMETERS),
     ]
 
-    # Load Flat player
-    # with open('flat.json') as f:
-    #     data = json.load(f)
-    # jugadores.append(partial(Flat, "5", data[-1][0]))
+    engine = SimpleGame()
+    elo = tournament(players, engine)
 
-    engine = JuegoSimple()
-    elo = tournament(jugadores, engine)
-
-    stats = [(jug().nombre, pnt) for jug, pnt in zip(jugadores, elo)]
+    stats = [(ply().name, scr) for ply, scr in zip(players, elo)]
     stats.sort(key=lambda x : -x[1])
 
-    for nom, pnt in stats:
-        print(nom, round(pnt))
+    for nom, scr in stats:
+        print(nom, round(scr))
