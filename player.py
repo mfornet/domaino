@@ -2,6 +2,12 @@ import random
 
 
 class BasePlayer:
+    """
+        TODO: Explain information that have each player in order to implement their AIs
+        Pieces
+        History
+        Heads
+    """
     def __init__(self, name):
         self.name = name
         self.position = None

@@ -79,7 +79,7 @@ class Domino:
             player.start(position, pieces[begin:end])
 
         self.heads = [-1, -1]
-        self.log("nuevo juego")
+        self.log(Event.NEW_GAME)
 
         # Ejectuando el juego
         while True:
