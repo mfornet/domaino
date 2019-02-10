@@ -77,3 +77,29 @@ class BasePlayer:
             result += piece[0] + piece[1]
         return result
 
+    @property
+    def me(self):
+        return self.position
+
+    @property
+    def partner(self, position=None):
+        if position is None:
+            position = self.me
+        return position ^ 2
+
+    @property
+    def team(self, position=None):
+        """ Players 0 and 2 belong to team 0
+            Players 1 and 3 belong to team 1
+        """
+        if position is None:
+            position = self.me
+        return position & 1
+
+    @property
+    def next(self, position=None):
+        """ Next player to play
+        """
+        if position is None:
+            position = self.me
+        return (position + 1) & 3

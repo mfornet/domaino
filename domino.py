@@ -4,6 +4,10 @@ from pprint import pprint
 from copy import deepcopy
 from enum import Enum
 
+from common.logger import add_logger, INFO
+
+logger = add_logger("domino", INFO)
+
 class Event(Enum):
     # Report begining
     # params: ()
@@ -53,6 +57,9 @@ class Domino:
         self.score = None
 
     def log(self, *data):
+        event, *params = data
+
+        logger.info(f"{event.name}: {params}")
         self.logs.append(data)
         for jugador in self.players:
             jugador.log(deepcopy(data))

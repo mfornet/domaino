@@ -9,6 +9,10 @@ from random import shuffle, choice
 from math import log
 
 import numpy as np
+from common.logger import add_logger, DEBUG, INFO
+
+logger = add_logger('mcts', INFO)
+logger.disabled = False
 
 def canonical(piece):
     a, b = piece
@@ -95,20 +99,14 @@ class MonteCarlo(BasePlayer):
         scores = {} # Score of each move (piece, head)
         winpredictions = {}
 
-        # from pprint import pprint
-        # pprint(self.history)
-
-        from pprint import pprint
         for _ in range(NUM_SAMPLING):
             distribution = self.sample()
-            cscores, cwinprediction = montecarlo(distribution, tuple(self.heads), self.position, NUM_EXPANDED)
-
-            # pprint(cscores)
+            cscores, cwinpredictions = montecarlo(distribution, tuple(self.heads), self.position, NUM_EXPANDED)
 
             for move, scr in cscores.items():
                 scores[move] = scores.get(move, 0.) + scr
 
-            for move, scr in cwinprediction.items():
+            for move, scr in cwinpredictions.items():
                 winpredictions[move] = winpredictions.get(move, 0.) + scr
 
         assert len(scores) > 0
@@ -124,10 +122,8 @@ class MonteCarlo(BasePlayer):
                 best_score = scr
                 best_move = move
 
-        # print(best_move)
-        # assert False
-
-        print("Score:", best_score / NUM_SAMPLING, winpredictions[move] / NUM_SAMPLING)
+        logger.info(f"Best move: {best_move}")
+        logger.info(f"Expected score: {winpredictions[move] / NUM_SAMPLING}")
 
         return move
 
@@ -166,7 +162,9 @@ class Node:
 
         score = exploitation + exploration
 
-        # print(f"!{exploitation} + !{exploration} = !{score}")
+        logger.debug(f"Exploitation: {exploitation}")
+        logger.debug(f"Exploration: {exploration}")
+        logger.debug(f"Score: {score}")
 
         return score
 
@@ -288,8 +286,6 @@ def montecarlo(distribution, heads, position, NUM_EXPANDED):
     """
     team = position & 1
 
-    # print("Position:", position)
-    # print([len(x) for x in distribution])
     # Compute first state
     mask = 0
     for dist in reversed(distribution):
@@ -307,19 +303,17 @@ def montecarlo(distribution, heads, position, NUM_EXPANDED):
     # Run MonteCarlo
     iterations = 0
 
-    # print("START")
+    logger.debug(f"Start montecarlo from: {bin(mask)} | {heads} | {pos}")
 
     while True:
         iterations += 1
-        # print(f"ITERATION: {iterations} | STATES: {len(state_map)}")
-
         # Stop condition
         if len(state_map) >= NUM_EXPANDED or \
             iterations >= 1e4:
-            break
 
-        # if iterations >= 1000:
-        #     print(iterations, len(state_map))
+            logger.debug(f"Iterations: {iterations}")
+            logger.debug(f"Number of states: {len(state_map)}")
+            break
 
         cur = start
         # path = [state_map[cur]]
@@ -349,7 +343,6 @@ def montecarlo(distribution, heads, position, NUM_EXPANDED):
 
             cur = best_child.state
 
-
         # Expand `cur` children if needed
         if node.children is None:
             node.children = []
@@ -358,9 +351,6 @@ def montecarlo(distribution, heads, position, NUM_EXPANDED):
 
                 node.children.append(child)
                 state_map[neig] = child
-
-        # print("SIMULATING FROM...")
-        # show(cur)
 
         # Run simulation from `cur`
         while not is_over(cur, distribution):
@@ -401,8 +391,4 @@ def montecarlo(distribution, heads, position, NUM_EXPANDED):
             answer[move] = nnode.visit_count / root.visit_count
             winprediction[move] = (nnode.rate[0] * 2 + nnode.rate[1]) / nnode.visit_count
 
-    # from pprint import pprint
-    # pprint(answer)
-    # print(distribution[position])
-    # assert(False)
     return answer, winprediction

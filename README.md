@@ -6,6 +6,10 @@
 
 This is a FAQ-like oriented reference to those who want to use/experiment with this repository for research, or fun.
 
+### Can I play the game as human?
+
+Not yet, but coming soon
+
 ### What players are already implemented?
 
 ### How can I add a new player?
