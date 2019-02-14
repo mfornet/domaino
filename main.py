@@ -1,39 +1,53 @@
 #!/usr/bin/python3
-from domino import SimpleGame
-from players import BigDrop, Random, Frequent, SimpleHybrid, MonteCarlo
-from functools import partial
+import argparse
+from players import PLAYERS
+from rules import RULES
 
-# TODO: Add easy CLI
+def find(elements, value):
+    value = value.lower()
+    for obj in elements:
+        if obj.__name__.lower() == value:
+            return obj
+    raise ValueError(f"{value} not found in {[e.__name__ for e in elements]}")
 
-def allVsallReport(players, total):
-    game = SimpleGame()
+def info(args):
+    information = \
+            'Players:\n' + \
+            ''.join([f'+ {player.__name__.lower()}\n' for player in PLAYERS]) + \
+            '\n' + \
+            'Rules:\n' +\
+            ''.join([f'+ {rule.__name__.lower()}\n' for rule in RULES])
+    print(information)
 
-    for ix, player0 in enumerate(players):
-        for iy, player1 in enumerate(players):
-            winrate = [0, 0, 0]
+def play(args):
+    player0 = find(PLAYERS, args.player0)
+    player1 = find(PLAYERS, args.player1)
+    rule = find(RULES, args.rule)
 
-            for _ in range(total):
-                winner = game.start(player0, player1)
-                winrate[winner] += 1
+    game = rule()
+    game.start(player0, player1)
 
-                if winner == 0:
-                    print("WINNER:", player0().name)
-                elif winner == 1:
-                    print("WINNER:", player1().name)
-                else:
-                    print("TIE")
 
-            print(f"{player0().name:12} {winrate[0]:2} - {winrate[2]:2} - {winrate[1]:2} {player1().name:12}")
+def main():
+    parser = argparse.ArgumentParser("DomAIno")
+    parser.add_argument
 
+    subparsers = parser.add_subparsers()
+    info_parser = subparsers.add_parser('info', help="Show available Players and Rules")
+    info_parser.set_defaults(command=info)
+
+    play_parser = subparsers.add_parser('play', help="Run a dominoe game")
+    play_parser.add_argument('-p0', '--player0', dest='player0', default='random')
+    play_parser.add_argument('-p1', '--player1', dest='player1', default='random')
+    play_parser.add_argument('-r', '--rule', dest='rule', default='onegame')
+    play_parser.set_defaults(command=play)
+
+    args = parser.parse_args()
+
+    if not hasattr(args, 'command'):
+        parser.print_help()
+    else:
+        args.command(args)
 
 if __name__ == '__main__':
-    players = [
-        # partial(BigDrop, "1"),
-        partial(Random, "2"),
-        # partial(Frequent, "3"),
-        # partial(SimpleHybrid, "4", [0.613, 0.075, 0.171, 0.562, 0.007, 100]),
-        partial(MonteCarlo, "5"),
-    ]
-
-    allVsallReport(players, 2)
-
+    main()

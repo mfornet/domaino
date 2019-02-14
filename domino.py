@@ -58,11 +58,10 @@ class Domino:
 
     def log(self, *data):
         event, *params = data
-
         logger.info(f"{event.name}: {params}")
         self.logs.append(data)
-        for jugador in self.players:
-            jugador.log(deepcopy(data))
+        for player in self.players:
+            player.log(deepcopy(data))
 
     def winner(self):
         assert self.logs[-1][0] == Event.WIN
@@ -92,8 +91,8 @@ class Domino:
         while True:
             is_over = True
 
-            for position, jugador in enumerate(self.players):
-                action = jugador.step(self.heads)
+            for position, player in enumerate(self.players):
+                action = player.step(self.heads)
 
                 if not action:
                     # Player doesn't have any valid piece
@@ -118,77 +117,27 @@ class Domino:
 
                     self.log(Event.MOVE, position, piece, head)
 
-                if len(jugador.pieces) == 0:
+                if len(player.pieces) == 0:
                     team = position % 2
 
                     self.log(Event.FINAL, position)
                     self.log(Event.WIN, team)
-                    self.score = [jugador.sum() for jugador in self.players]
+                    self.score = [player.score() for player in self.players]
 
                     return
 
             if is_over:
                 self.log(Event.OVER)
+                self.score = [player.score() for player in self.players]
 
-                self.score = [jugador.sum() for jugador in self.players]
+                team0 = min(self.score[0], self.score[2])
+                team1 = min(self.score[1], self.score[3])
 
-                equipo0 = min(self.score[0], self.score[2])
-                equipo1 = min(self.score[1], self.score[3])
-
-                if equipo0 < equipo1:
+                if team0 < team1:
                     self.log(Event.WIN, 0)
-                elif equipo1 < equipo0:
+                elif team1 < team0:
                     self.log(Event.WIN, 1)
                 else:
                     self.log(Event.WIN, -1)
 
-                return
-
-## Wrappers for match implementing different domino rules.
-
-class SimpleGame:
-    """ Simplest rules. Only one match is played.
-    """
-
-    def start(self, player0, player1):
-        """ Return id of winner team (-1 for tie)
-        """
-
-        players = [player0(), player1(), player0(), player1()]
-        env = Domino()
-        env.start(players)
-
-        return env.winner()
-
-class TwoOfThree:
-    """ First to win two games. Last winner start next match
-    """
-    def __init__(self, random_start=True):
-        self.random_start = random_start
-
-    def start(self, player0, player1):
-        players = [player0(), player1(), player0(), player1()]
-        env = Domino()
-        cur_start = 0
-
-        if self.random_start:
-            if random.choice([False, True]):
-                cur_start ^= 1
-                players[0], players[1] = players[1], players[0]
-                players[2], players[3] = players[3], players[2]
-
-        wins = [0, 0]
-
-        while max(wins) < 2:
-            env.start(players)
-            result = env.winner()
-
-            wins[result ^ cur_start] += 1
-
-            if result == -1 or result != cur_start:
-                # Swap players
-                cur_start ^= 1
-                players[0], players[1] = players[1], players[0]
-                players[2], players[3] = players[3], players[2]
-
-        return 0 if wins[0] > wins[1] else 1
+                break

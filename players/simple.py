@@ -1,12 +1,3 @@
-"""
-    Basic domino agents
-
-    BigDrop:
-
-    Random:
-
-    Frequent:
-"""
 from player import BasePlayer
 import random
 

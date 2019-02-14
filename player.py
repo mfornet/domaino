@@ -2,12 +2,6 @@ import random
 
 
 class BasePlayer:
-    """
-        TODO: Explain information that have each player in order to implement their AIs
-        Pieces
-        History
-        Heads
-    """
     def __init__(self, name):
         self.name = name
         self.position = None
@@ -40,7 +34,8 @@ class BasePlayer:
         return piece, head
 
     def valid(self, piece, head):
-        """ Check if `piece` can be put on head `head`
+        """
+            Check if `piece` can be put on head `head`
         """
         return self.heads[head] == -1 or self.heads[head] in piece
 
@@ -68,9 +63,9 @@ class BasePlayer:
         """
         raise NotImplementedError()
 
-    def sum(self):
+    def score(self):
         """
-            Current score of each player relative to the weights of its pieces
+            Score of current player relative to the weights of its pieces
         """
         result = 0
         for piece in self.pieces:

@@ -12,7 +12,7 @@ def add_logger(name, level):
     logger.setLevel(level)
 
     if not logger.handlers:
-        formatter = logging.Formatter('%(asctime)s| %(message)s')
+        formatter = logging.Formatter('%(message)s')
 
         log_file = join(path, f'{name}.log')
         file_handler = logging.FileHandler(log_file)
