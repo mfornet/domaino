@@ -4,15 +4,15 @@ This is an environment to develop and test bots in the [Game of Dominoes](https:
 
 ## Quick reference
 
-Show all available players and rules
+Show all available players and rules:
 
 `./main.py info`
 
-Run a single match between `Big Drop` player and `Random` player.
+Run a single match between `Big Drop` player and `Random` player:
 
 `./main.py play --player0 BigDrop --player1 Random --rule OneGame`
 
-After running the match you should see in the shell similar logs to:
+After running the match you should see in the shell logs similar to:
 
 ```
 NEW_GAME: []
@@ -50,17 +50,17 @@ WIN: [0]
 ### Legend
 
 + `NEW_GAME []`: A new domino game started.
-+ `MOVE [p, (v0, v1), h]`: Player `p` put piece `(v0, v1)` in head `h`
++ `MOVE [p, (v0, v1), h]`: Player `p` put piece `(v0, v1)` in head `h`.
 + `PASS [p]`: Player `p` can't play.
-+ `FINAL [p]`: Player `p` has not more pieces.
-+ `WIN [t]`: Team `w` win. (-1 for ties)
++ `FINAL [p]`: Player `p` has no more pieces.
++ `WIN [t]`: Team `w` wins (-1 for ties).
 
 ## Add a new player
 
-1. Create a class that inherit from [BasePlayer](player.py) (in [player.py](player.py)).
+1. Create a class that inherits from [BasePlayer](player.py) (in [player.py](player.py)).
 2. Register your player in [players/\_\_init\_\_.py](players/__init__.py) in the `PLAYERS` array.
 
-Check already implemented [players](players/simple.py) as example.
+Check the [players](players/simple.py) already implemented as examples.
 
 ## TODO List
 
