@@ -58,7 +58,7 @@ WIN: [0]
 ## Add a new player
 
 1. Create a class that inherit from [BasePlayer](player.py) (in [player.py](player.py)).
-2. Register your player in [players/__init__.py](players/__init__.py) in the `PLAYERS` array.
+2. Register your player in [players/\_\_init\_\_.py](players/__init__.py) in the `PLAYERS` array.
 
 Check already implemented [players](players/simple.py) as example.
 
