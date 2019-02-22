@@ -1,5 +1,5 @@
 import logging
-import subprocess
+import os
 
 from logging import DEBUG, INFO, WARNING, ERROR
 
@@ -18,10 +18,10 @@ def add_logger(name, level):
         log_file = join(path, f'{name}.log')
         
         if not exists(path):
-            subprocess.run(["mkdir", path])
-
+            os.mkdir(path)
+            
         if not exists(log_file):
-            subprocess.run(["touch", log_file])
+            open(log_file, 'a').close()
 
         file_handler = logging.FileHandler(log_file)
         file_handler.setFormatter(formatter)
