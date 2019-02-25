@@ -92,8 +92,11 @@ class Domino:
 
     def log(self, *data):
         event, *params = data
-        logger.info(f"{event.name}: {params}")
+        # logger.info(f"{event.name}: {params}")
         self.logs.append(data)
+
+    def get_pieces(self):
+        return [player.pieces for player in self.players]
 
     def winner(self):
         assert self.logs[-1][0] == Event.WIN
