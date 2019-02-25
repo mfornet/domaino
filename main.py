@@ -3,12 +3,14 @@ import argparse
 from players import PLAYERS
 from rules import RULES
 
+
 def find(elements, value):
     value = value.lower()
     for obj in elements:
         if obj.__name__.lower() == value:
             return obj
     raise ValueError(f"{value} not found in {[e.__name__ for e in elements]}")
+
 
 def info(args):
     information = \
@@ -18,6 +20,7 @@ def info(args):
             'Rules:\n' +\
             ''.join([f'+ {rule.__name__.lower()}\n' for rule in RULES])
     print(information)
+
 
 def play(args):
     player0 = find(PLAYERS, args.player0)
@@ -40,6 +43,7 @@ def main():
     play_parser.add_argument('-p0', '--player0', dest='player0', default='random')
     play_parser.add_argument('-p1', '--player1', dest='player1', default='random')
     play_parser.add_argument('-r', '--rule', dest='rule', default='onegame')
+    # play_parser.add_argument('-c', '--count', type=int, dest='count', default=1, help="Number of games to play")
     play_parser.set_defaults(command=play)
 
     args = parser.parse_args()

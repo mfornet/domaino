@@ -23,7 +23,7 @@ class BasePlayer:
 
         if should_pass:
             # If player should pass because it doesn't have any valid piece
-            return False
+            return None
 
         self.heads = heads
         piece, head = self.choice()
@@ -39,7 +39,7 @@ class BasePlayer:
         """
         return self.heads[head] == -1 or self.heads[head] in piece
 
-    def start(self, position, pieces):
+    def reset(self, position, pieces):
         self.position = position
         self.pieces = pieces
 

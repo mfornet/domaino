@@ -1,5 +1,5 @@
 import random
-from domino import Domino
+from domino import DominoManager
 
 class BaseRule:
     """
@@ -19,10 +19,9 @@ class OneGame:
         Play one game
     """
     def start(self, player0, player1):
+        env = DominoManager()
         players = [player0("0"), player1("1"), player0("2"), player1("3")]
-        env = Domino()
-        env.start(players)
-        return env.winner()
+        return env.run(players)
 
 
 class TwoOfThree:
@@ -33,8 +32,9 @@ class TwoOfThree:
         self.random_start = random_start
 
     def start(self, player0, player1):
+        env = DominoManager()
         players = [player0("0"), player1("1"), player0("2"), player1("3")]
-        env = Domino()
+
         cur_start = 0
 
         if self.random_start:
@@ -46,8 +46,7 @@ class TwoOfThree:
         wins = [0, 0]
 
         while max(wins) < 2:
-            env.start(players)
-            result = env.winner()
+            result = env.run(players)
 
             if result != -1:
                 wins[result ^ cur_start] += 1
