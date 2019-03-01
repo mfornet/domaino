@@ -1,6 +1,7 @@
 from player import BasePlayer
 import numpy as np
 
+
 # TODO: Explain how this player was implemented and how was found the set of parameters.
 class SimpleHybrid(BasePlayer):
     PARAMETERS = [0.613, 0.075, 0.171, 0.562, 0.007, 2.127]
@@ -14,10 +15,10 @@ class SimpleHybrid(BasePlayer):
         self.coef = coef
 
     def __eq__(self, other):
-        return self.nombre == other.nombre
+        return self.name == other.name
 
     def __repr__(self):
-        return self.nombre
+        return self.name
 
     def eval_random(self, piece):
         return 1
@@ -63,7 +64,7 @@ class SimpleHybrid(BasePlayer):
 
         index = self.pieces.index(piece)
         if total[index] == bigger:
-            return 1/_count
+            return 1 / _count
         else:
             return 0
 
@@ -72,7 +73,7 @@ class SimpleHybrid(BasePlayer):
 
         for _piece in self.pieces:
             if piece[0] == _piece[0] or piece[0] == _piece[1] or \
-              piece[1] == _piece[0] or piece[1] == _piece[1]:
+                    piece[1] == _piece[0] or piece[1] == _piece[1]:
                 count += 1
 
         return count
@@ -90,19 +91,19 @@ class SimpleHybrid(BasePlayer):
 
         for piece in self.pieces:
             if -1 in heads or \
-                piece[0] in heads or \
-                piece[1] in heads:
+                    piece[0] in heads or \
+                    piece[1] in heads:
 
-                valores = []
+                values = []
 
-                valores.append(self.eval_random(piece))
-                valores.append(self.eval_big_drop(piece))
-                valores.append(self.eval_big_drop_soft(piece))
-                valores.append(self.eval_frequent(piece))
-                valores.append(self.eval_frequent_soft(piece))
-                valores.append(self.eval_doubles(piece))
+                values.append(self.eval_random(piece))
+                values.append(self.eval_big_drop(piece))
+                values.append(self.eval_big_drop_soft(piece))
+                values.append(self.eval_frequent(piece))
+                values.append(self.eval_frequent_soft(piece))
+                values.append(self.eval_doubles(piece))
 
-                mul = np.multiply(self.coef, valores)
+                mul = np.multiply(self.coef, values)
                 val = np.sum(mul)
 
                 if val > bigger:

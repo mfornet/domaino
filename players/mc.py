@@ -13,9 +13,11 @@ from common.logger import add_logger, DEBUG, INFO
 logger = add_logger('mcts', INFO)
 logger.disabled = False
 
+
 def canonical(piece):
     a, b = piece
     return max(a, b), min(a, b)
+
 
 class MonteCarlo(BasePlayer):
     def __init__(self, name):
@@ -58,6 +60,7 @@ class MonteCarlo(BasePlayer):
                     self.pool.remove(canonical(piece))
 
             elif event == Event.PASS:
+                position = args
                 self.dont_have[position] |= 1 << self.heads[0]
                 self.dont_have[position] |= 1 << self.heads[1]
 
@@ -92,7 +95,7 @@ class MonteCarlo(BasePlayer):
         NUM_SAMPLING = 10
         NUM_EXPANDED = 2000
 
-        scores = {} # Score of each move (piece, head)
+        scores = {}  # Score of each move (piece, head)
         winpredictions = {}
 
         for _ in range(NUM_SAMPLING):
@@ -117,11 +120,12 @@ class MonteCarlo(BasePlayer):
                 best_move = move
 
         logger.info(f"Best move: {best_move}")
-        logger.info(f"Expected score: {winpredictions[move] / NUM_SAMPLING}")
+        logger.info(f"Expected score: {winpredictions[best_move] / NUM_SAMPLING}")
 
-        return move
+        return best_move
 
-## Utils for Montecarlo
+
+# Utils for Montecarlo
 
 class Node:
     WIN_POINTS = 2
@@ -144,7 +148,7 @@ class Node:
 
         assert sum(self.rate) == self.visit_count
 
-        if me: # Current player is from my team
+        if me:  # Current player is from my team
             exploitation = self.rate[0] * Node.WIN_POINTS + self.rate[1] * Node.TIE_POINTS
         else:  # Current player is NOT from my team
             exploitation = self.rate[2] * Node.WIN_POINTS + self.rate[1] * Node.TIE_POINTS
@@ -152,7 +156,7 @@ class Node:
         # Mean of all simulations so far
         exploitation /= self.visit_count
 
-        exploration = Node.EXPLORATION * (log(parent_visit_count) / self.visit_count)**.5
+        exploration = Node.EXPLORATION * (log(parent_visit_count) / self.visit_count) ** .5
 
         score = exploitation + exploration
 
@@ -191,7 +195,7 @@ def winner(state, position, distribution):
         hand = 0
 
         for j in range(7):
-            if ((mask >> (i * 7 + j)) & 1):
+            if (mask >> (i * 7 + j)) & 1:
                 hand += sum(distribution[i][j])
 
         if hand < light_hand:
@@ -218,7 +222,7 @@ def is_over(state, distribution):
     exist_move = False
 
     for i in range(4):
-        # Player `i` don't have any remaining piece
+        # Player `i` doesn't have any piece left
         if (mask >> (7 * i)) & ((1 << 7) - 1) == 0:
             return True
 
@@ -239,15 +243,15 @@ def neighbors(state, distribution):
         if ((mask >> (7 * pos + i)) & 1) == 1:
             piece = distribution[pos][i]
 
-            # If piece can be played throug head_0
+            # If piece can be played through head_0
             if heads[0] in piece or heads[0] == -1:
                 nmask = mask ^ (1 << (7 * pos + i))
                 nheads = (heads[0] ^ piece[0] ^ piece[1], heads[1])
-                npos = (pos + 1) & 3 # % 4
+                npos = (pos + 1) & 3  # % 4
                 count += 1
                 yield (nmask, nheads, npos)
 
-            # If piece can be played throug head_1
+            # If piece can be played through head_1
             if heads[1] in distribution[pos][i]:
                 nmask = mask ^ (1 << (7 * pos + i))
                 nheads = (heads[0], heads[1] ^ piece[0] ^ piece[1])
@@ -255,10 +259,11 @@ def neighbors(state, distribution):
                 count += 1
                 yield (nmask, nheads, npos)
 
-    # Player can't make any valid move other than passs
+    # Player can't make any valid move other than pass
     if count == 0:
         npos = (pos + 1) & 3
         yield (mask, heads, npos)
+
 
 def show(state):
     mask, heads, pos = state
@@ -291,8 +296,8 @@ def montecarlo(distribution, heads, position, NUM_EXPANDED):
 
     start = (mask, heads, pos)
 
-    # Intialize states for MonteCarlo Tree Search
-    state_map = {start : Node(start)}
+    # Initialize states for MonteCarlo Tree Search
+    state_map = {start: Node(start)}
 
     # Run MonteCarlo
     iterations = 0
@@ -303,8 +308,7 @@ def montecarlo(distribution, heads, position, NUM_EXPANDED):
         iterations += 1
         # Stop condition
         if len(state_map) >= NUM_EXPANDED or \
-            iterations >= 1e4:
-
+                iterations >= 1e4:
             logger.debug(f"Iterations: {iterations}")
             logger.debug(f"Number of states: {len(state_map)}")
             break
@@ -366,7 +370,7 @@ def montecarlo(distribution, heads, position, NUM_EXPANDED):
         if heads[0] in piece or heads[0] == -1:
             nmask = mask ^ (1 << (7 * position + i))
             nheads = (heads[0] ^ piece[0] ^ piece[1], heads[1])
-            npos = (position + 1) & 3 # % 4
+            npos = (position + 1) & 3  # % 4
 
             nnode = state_map[(nmask, nheads, npos)]
 
@@ -377,7 +381,7 @@ def montecarlo(distribution, heads, position, NUM_EXPANDED):
         if heads[1] in piece:
             nmask = mask ^ (1 << (7 * position + i))
             nheads = (heads[0], heads[1] ^ piece[0] ^ piece[1])
-            npos = (position + 1) & 3 # % 4
+            npos = (position + 1) & 3  # % 4
 
             nnode = state_map[(nmask, nheads, npos)]
 
