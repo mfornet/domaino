@@ -349,6 +349,7 @@ def play():
             print("Thinking...")
             value = minimax.find(state, -2, 2)
 
+            # This is wrong, it depends on who starts the game
             if value > 0:
                 print("I'm sure I'll win this game.")
             elif value == 0:
