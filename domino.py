@@ -8,8 +8,9 @@ from common.logger import add_logger, INFO
 
 logger = add_logger("domino", INFO)
 
+
 class Event(Enum):
-    # Report begining
+    # Report beginning
     # params: ()
     NEW_GAME = 0
 
@@ -39,7 +40,7 @@ class PlayerView:
         self.pieces = pieces
         self.remaining = set(pieces)
         self.nums = {}
-        # Double are counted twice
+        # Doubles are counted twice
         for (x, y) in pieces:
             self.nums[x] = self.nums.get(x, 0) + 1
             self.nums[y] = self.nums.get(y, 0) + 1
@@ -126,7 +127,7 @@ class Domino:
                     (self.heads[0] == -1 or self.heads[h] in piece)
 
     def _is_over(self):
-        # It is the begining of the game
+        # It is the beginning of the game
         if self.heads[0] == -1:
             return False
 
@@ -158,7 +159,7 @@ class Domino:
         `action` must be:
 
         * a tuple of the form `((a, b), h)` where `(a, b)` is the piece
-          current player is playing and `h` is the proper head.
+          the current player is playing and `h` is the proper head.
 
         * None if the player have no valid piece.
 
@@ -225,10 +226,10 @@ class DominoManager:
 
 def hand_out(max_number, pieces_per_player):
     """
-    Randomly distribuite pieces among every players.
-    Valid pieces are all integer tuple of the form:
+    Randomly distribute pieces among every player.
+    Valid pieces are all integer tuples of the form:
         (i, j) 0 <= i <= j <= max_number
-    Each player will have pieces_per_player.
+    Each player will have `pieces_per_player`.
     """
     pieces = [(i, j) for i in range(max_number + 1) for j in range(max_number + 1) if i <= j]
     assert 4 * pieces_per_player <= len(pieces)
